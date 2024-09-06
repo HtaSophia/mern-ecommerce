@@ -30,12 +30,31 @@ export const signup = async (req, res) => {
             message: "User created successfully",
         });
     } catch (error) {
+        console.error("Error signing up:", error);
         res.status(500).json({ message: error.message });
     }
 };
 
 export const login = async (req, res) => {
-    res.send("Login route called");
+    try {
+        const { email, password } = req.body;
+
+        const user = await User.findOne({ email });
+        const passwordMatches = user && (await user.matchPassword(password));
+
+        if (!user || !passwordMatches) {
+            return res.status(401).json({ message: "Invalid email or password" });
+        }
+
+        const { accessToken, refreshToken } = generateTokens(user._id);
+        await storeRefreshToken(user._id, refreshToken);
+        setCookies(res, accessToken, refreshToken);
+
+        res.status(200).json({ user, message: "Logged in successfully" });
+    } catch (error) {
+        console.error("Error logging in:", error);
+        res.status(500).json({ message: error.message });
+    }
 };
 
 export const logout = async (req, res) => {
@@ -43,10 +62,7 @@ export const logout = async (req, res) => {
         const refreshToken = req.cookies.refresh_token;
 
         if (refreshToken) {
-            const tokenDecoded = jwt.verify(
-                refreshToken,
-                process.env.JWT_REFRESH_SECRET
-            );
+            const tokenDecoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
             await redis.del(`refresh_token_${tokenDecoded.userId}`);
         }
 
@@ -54,6 +70,7 @@ export const logout = async (req, res) => {
         res.clearCookie("refresh_token");
         res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
+        console.error("Error logging out:", error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -82,12 +99,7 @@ const generateTokens = (userId) => {
  * @param {string} refreshToken - The refresh token to store.
  */
 const storeRefreshToken = async (userId, refreshToken) => {
-    await redis.set(
-        `refresh_token_${userId}`,
-        refreshToken,
-        "EX",
-        60 * 60 * 24 * 7
-    );
+    await redis.set(`refresh_token_${userId}`, refreshToken, "EX", 60 * 60 * 24 * 7);
 };
 
 /**
