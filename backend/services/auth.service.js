@@ -3,21 +3,27 @@ import redis from "../lib/redis.js";
 
 export default class AuthService {
     /**
-     * Generates an access token and a refresh token for the given user ID.
-     * The access token is valid for 15 minutes and the refresh token is valid for 7 days.
+     * Generates an access token for the given user ID.
+     * The access token is valid for 15 minutes.
      * @param {string} userId - The user ID.
-     * @return {{accessToken: string, refreshToken: string}} An object containing the access token and the refresh token.
+     * @return {string} The access token.
      */
-    static generateTokens(userId) {
-        const accessToken = jwt.sign({ userId }, process.env.JWT_ACCESS_SECRET, {
+    static generateAccessToken(userId) {
+        return jwt.sign({ userId }, process.env.JWT_ACCESS_SECRET, {
             expiresIn: "15m",
         });
+    }
 
-        const refreshToken = jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, {
+    /**
+     * Generates a refresh token for the given user ID.
+     * The refresh token is valid for 7 days.
+     * @param {string} userId - The user ID.
+     * @return {string} The refresh token.
+     */
+    static generateRefreshToken(userId) {
+        return jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, {
             expiresIn: "7d",
         });
-
-        return { accessToken, refreshToken };
     }
 
     /**
@@ -40,5 +46,23 @@ export default class AuthService {
             const tokenDecoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
             await redis.del(`refresh_token_${tokenDecoded.userId}`);
         }
+    }
+
+    /**
+     * Validates a refresh token by verifying if it matches the stored token in Redis.
+     * @param {string} refreshToken - The refresh token to validate.
+     * @return {Promise<{valid: boolean, userId: string}>} A valid property indicating
+     *     if the token is valid or not, and a userId property if the token is valid.
+     */
+    static async validateRefreshToken(refreshToken) {
+        const tokenDecoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        const userId = tokenDecoded.userId;
+        const storedRefreshToken = await redis.get(`refresh_token_${userId}`);
+
+        if (storedRefreshToken === refreshToken) {
+            return { valid: true, userId };
+        }
+
+        return { valid: false };
     }
 }
