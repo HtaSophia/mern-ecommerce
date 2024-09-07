@@ -13,7 +13,7 @@ export const signup = async (req, res) => {
     try {
         const user = await UserService.create({ name, email, password });
 
-        const { accessToken, refreshToken } = AuthService.generateTokens(user._id);
+        const [accessToken, refreshToken] = [AuthService.generateAccessToken(user._id), AuthService.generateRefreshToken(user._id)];
         await AuthService.storeRefreshToken(user._id, refreshToken);
         setCookies(res, accessToken, refreshToken);
 
@@ -41,7 +41,7 @@ export const login = async (req, res) => {
             return res.status(401).json({ message: "Invalid email or password" });
         }
 
-        const { accessToken, refreshToken } = AuthService.generateTokens(user._id);
+        const [accessToken, refreshToken] = [AuthService.generateAccessToken(user._id), AuthService.generateRefreshToken(user._id)];
         await AuthService.storeRefreshToken(user._id, refreshToken);
         setCookies(res, accessToken, refreshToken);
 
@@ -81,10 +81,37 @@ export const logout = async (req, res) => {
 };
 
 /**
+ * Refreshes an access token based on the refresh token stored in the request cookies.
+ * If no refresh token is found, returns a 401 Unauthorized response.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @returns {Promise<void>}
+ */
+export const refreshAccessToken = async (req, res) => {
+    const currentRefreshToken = req.cookies.refresh_token;
+
+    if (!currentRefreshToken) return res.status(401).json({ message: "Unauthorized: Missing refresh token" });
+
+    try {
+        const { valid, userId } = await AuthService.validateRefreshToken(currentRefreshToken);
+
+        if (!valid) return res.status(401).json({ message: "Unauthorized: Invalid refresh token" });
+
+        const accessToken = AuthService.generateAccessToken(userId);
+        setCookies(res, accessToken);
+
+        res.status(200).json({ message: "Token refreshed successfully" });
+    } catch (error) {
+        console.error("Error refreshing token:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
  * Sets the access token and refresh token cookies in the response.
  * @param {Response} res - The response object to set the cookies on.
  * @param {string} accessToken - The access token to set.
- * @param {string} refreshToken - The refresh token to set.
+ * @param {string} [refreshToken] - The refresh token to set.
  */
 const setCookies = (res, accessToken, refreshToken) => {
     res.cookie("access_token", accessToken, {
@@ -94,10 +121,12 @@ const setCookies = (res, accessToken, refreshToken) => {
         maxAge: 1000 * 60 * 15,
     });
 
-    res.cookie("refresh_token", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-    });
+    if (refreshToken) {
+        res.cookie("refresh_token", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 1000 * 60 * 60 * 24 * 7,
+        });
+    }
 };
