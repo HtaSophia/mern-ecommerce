@@ -1,6 +1,21 @@
 import ProductService from "../services/product.service.js";
 
 /**
+ * Creates a new product and uploads the image to Cloudinary.
+ * @param {{name: string, category: string, description: string, image: string, price: number}} product - The product to create.
+ */
+export const createProduct = async (req, res) => {
+    try {
+        const { name, category, description, image, price } = req.body;
+        const product = await ProductService.create({ name, category, description, image, price });
+        res.status(201).json({ data: { product }, message: "Product created successfully" });
+    } catch (error) {
+        console.error("Error (createProduct):", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
  * Retrieves all products in the database.
  *
  * @param {Request} req - The request object.
