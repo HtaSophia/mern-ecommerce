@@ -49,6 +49,16 @@ export default class AuthService {
     }
 
     /**
+     * Decodes an access token and returns the decoded user ID.
+     * @param {string} accessToken - The access token to decode.
+     * @return {string} The decoded user ID.
+     */
+    static decodeAccessToken(accessToken) {
+        const decodedToken = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET);
+        return decodedToken.userId;
+    }
+
+    /**
      * Validates a refresh token by verifying if it matches the stored token in Redis.
      * @param {string} refreshToken - The refresh token to validate.
      * @return {Promise<{valid: boolean, userId: string}>} A valid property indicating
