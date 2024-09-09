@@ -17,7 +17,7 @@ export const signup = async (req, res) => {
         await AuthService.storeRefreshToken(user._id, refreshToken);
         setCookies(res, accessToken, refreshToken);
 
-        res.status(201).json({ user, message: "User created successfully" });
+        res.status(201).json({ data: { user }, message: "User created successfully" });
     } catch (error) {
         console.error("Error signing up:", error);
         res.status(500).json({ message: error.message });
@@ -46,12 +46,14 @@ export const login = async (req, res) => {
         setCookies(res, accessToken, refreshToken);
 
         res.status(200).json({
-            user: {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                cartItems: user.cartItems,
-                role: user.role,
+            data: {
+                user: {
+                    _id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    cartItems: user.cartItems,
+                    role: user.role,
+                },
             },
             message: "Logged in successfully",
         });
