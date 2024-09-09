@@ -47,3 +47,21 @@ export const getFeaturedProducts = async (_req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+/**
+ * Deletes a product by ID from the database and the image from Cloudinary.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @throws {Error} If the product is not found.
+ * @return {Promise<void>}
+ */
+export const deleteProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await ProductService.deleteProduct(id);
+        res.status(200).json({ message: "Product deleted successfully" });
+    } catch (error) {
+        console.error("Error (deleteProduct):", error);
+        res.status(500).json({ message: error.message });
+    }
+}

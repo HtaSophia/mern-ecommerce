@@ -10,7 +10,10 @@ export default class ProductService {
      */
     static async create(product) {
         const uploadImageResult = await cloudinary.uploader.upload(product.image, { folder: "products" });
-        return Product.create({ ...product, image: uploadImageResult.secure_url });
+        return Product.create({
+            ...product,
+            image: { url: uploadImageResult.secure_url, publicId: uploadImageResult.public_id },
+        });
     }
 
     /**
@@ -40,5 +43,21 @@ export default class ProductService {
         await redis.set("featured_products", JSON.stringify(featuredProducts), "EX", 60 * 60 * 3);
 
         return featuredProducts;
+    }
+
+    /**
+     * Deletes a product by ID from the database and the image from Cloudinary.
+     * @param {string} id - The ID of the product to delete.
+     * @throws {Error} If the product is not found.
+     * @return {Promise<void>}
+     */
+    static async deleteProduct(id) {
+        const product = await Product.findById(id);
+
+        if (!product) {
+            throw new Error("Product not found");
+        }
+
+        await Promise.all([cloudinary.uploader.destroy(`products/${product.image.publicId}`), product.deleteOne()]);
     }
 }
