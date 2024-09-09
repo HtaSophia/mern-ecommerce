@@ -10,12 +10,13 @@ const productSchema = new mongoose.Schema(
         },
         category: { type: String, required: [true, "Category is required"] },
         description: { type: String, required: [true, "Description is required"] },
-        image: { type: String, required: [true, "Image is required"] },
+        image: {
+            url: { type: String, required: [true, "Image is required"] },
+            publicId: { type: String, required: [true, "Public ID is required"] },
+        },
         isFeatured: { type: Boolean, default: false },
     },
-    {
-        timestamps: true,
-    }
+    { timestamps: true }
 );
 
 const Product = mongoose.model("Product", productSchema);
