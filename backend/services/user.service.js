@@ -39,6 +39,15 @@ export default class UserService {
     }
 
     /**
+     * Finds a user by ID and returns the user object if found.
+     * @param {string} id - The ID of the user to find.
+     * @return {Promise<User | null>} The user object if found, or null if the user does not exist.
+     */
+    static async findById(id) {
+        return User.findById(id).select("-password");
+    }
+
+    /**
      * Logs in an existing user and returns a user object with a subset of the user's data.
      * @param {{email: string, password: string}} user - The email and password of the user to log in.
      * @return {Promise<Object>} A user object with a subset of the user's data: {_id, name, email, cartItems, role}.
