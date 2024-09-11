@@ -38,3 +38,16 @@ export const updateItemQuantity = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+export const removeItemFromCart = async (req, res) => {
+    const { productId } = req.params;
+    const user = req.user;
+
+    try {
+        const cart = await cartService.removeItem(user, productId);
+        res.status(200).json({ data: { cart }, message: "Item removed from cart successfully" });
+    } catch (error) {
+        console.error("Error (removeItemFromCart):", error);
+        res.status(500).json({ message: error.message });
+    }
+};

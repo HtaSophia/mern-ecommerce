@@ -49,6 +49,17 @@ export default class CartService {
     }
 
     /**
+     * Removes an item from a user's cart.
+     * @param {User} user - The user to remove the item from.
+     * @param {string} productId - The ID of the item to remove.
+     * @return {Promise<CartItem[]>} The updated cart.
+     */
+    static async removeItem(user, productId) {
+        const cartItems = user.cartItems.filter((item) => item.productId !== productId);
+        return CartService.updateCartItems(user._id, cartItems);
+    }
+
+    /**
      * Updates a user's cart items in the database.
      * @param {ObjectId} userId - The ID of the user to update.
      * @param {CartItem[]} cartItems - The new cart items for the user.
