@@ -5,8 +5,9 @@ import ProductService from "../services/product.service.js";
  * @param {{name: string, category: string, description: string, image: string, price: number}} product - The product to create.
  */
 export const createProduct = async (req, res) => {
+    const { name, category, description, image, price } = req.body;
+
     try {
-        const { name, category, description, image, price } = req.body;
         const product = await ProductService.create({ name, category, description, image, price });
         res.status(201).json({ data: { product }, message: "Product created successfully" });
     } catch (error) {
@@ -21,9 +22,12 @@ export const createProduct = async (req, res) => {
  * @param {Request} req - The request object.
  * @param {Response} res - The response object.
  */
-export const getAllProducts = async (_req, res) => {
+export const getProducts = async (req, res) => {
+    const { category } = req.query;
+    const filter = category ? { category } : {};
+
     try {
-        const products = await ProductService.findAll();
+        const products = await ProductService.findAll(filter);
         res.status(200).json({ data: { products }, message: "Products retrieved successfully" });
     } catch (error) {
         console.error("Error (getAllProducts):", error);
@@ -48,6 +52,18 @@ export const getFeaturedProducts = async (_req, res) => {
     }
 };
 
+export const updateProduct = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const product = await ProductService.updateProduct(id, { ...req.body });
+        res.status(200).json({ data: { product }, message: "Product updated successfully" });
+    } catch (error) {
+        console.error("Error (updateProduct):", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 /**
  * Deletes a product by ID from the database and the image from Cloudinary.
  * @param {Request} req - The request object.
@@ -64,4 +80,4 @@ export const deleteProduct = async (req, res) => {
         console.error("Error (deleteProduct):", error);
         res.status(500).json({ message: error.message });
     }
-}
+};

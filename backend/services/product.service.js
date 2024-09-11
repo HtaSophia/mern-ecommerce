@@ -2,6 +2,11 @@ import cloudinary from "../lib/cloudinary.js";
 import redis from "../lib/redis.js";
 import Product from "../models/product.model.js";
 
+/**
+ * @typedef ProductFilter
+ * @property {string} [category] - The category of the product.
+ */
+
 export default class ProductService {
     /**
      * Creates a new product and uploads the image to Cloudinary.
@@ -18,10 +23,11 @@ export default class ProductService {
 
     /**
      * Retrieves all products in the database.
+     * @param {ProductFilter} [filter] - The filter to apply to the query.
      * @return {Promise<Product[]>} An array of Product objects.
      */
     static async findAll(filter = {}) {
-        return Product.find().lean();
+        return Product.find({ ...filter }).lean();
     }
 
     /**
@@ -43,6 +49,10 @@ export default class ProductService {
         await redis.set("featured_products", JSON.stringify(featuredProducts), "EX", 60 * 60 * 3);
 
         return featuredProducts;
+    }
+
+    static async updateProduct(id, product) {
+        return Product.findByIdAndUpdate(id, { ...product }, { new: true });
     }
 
     /**
