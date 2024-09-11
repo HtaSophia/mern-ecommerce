@@ -24,3 +24,17 @@ export const addItemToCart = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+export const updateItemQuantity = async (req, res) => {
+    const { productId } = req.params;
+    const { quantity } = req.body;
+    const user = req.user;
+
+    try {
+        const cart = await cartService.updateItemQuantity(user, productId, quantity);
+        res.status(200).json({ data: { cart }, message: "Item quantity updated successfully" });
+    } catch (error) {
+        console.error("Error (updateItemQuantity):", error);
+        res.status(500).json({ message: error.message });
+    }
+};
