@@ -12,3 +12,15 @@ export const getCart = async (req, res) => {
     }
 };
 
+export const addItemToCart = async (req, res) => {
+    const { productId, quantity } = req.body;
+    const user = req.user;
+
+    try {
+        const cart = await cartService.addItem(user, productId, quantity);
+        res.status(200).json({ data: { cart }, message: "Item added to cart successfully" });
+    } catch (error) {
+        console.error("Error (addItemToCart):", error);
+        res.status(500).json({ message: error.message });
+    }
+};
