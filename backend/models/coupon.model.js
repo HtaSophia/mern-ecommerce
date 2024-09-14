@@ -6,6 +6,7 @@ const couponSchema = new mongoose.Schema(
             type: String,
             required: true,
             unique: true,
+            index: true,
         },
         discountPercentage: {
             type: Number,
@@ -21,11 +22,16 @@ const couponSchema = new mongoose.Schema(
             type: Boolean,
             default: true,
         },
-        ownerId: {
+        owner: {
             type: mongoose.Schema.Types.ObjectId,
             refer: "User",
-            required: true,
+            required: false,
             unique: true,
+            index: true,
+        },
+        stripeCouponId: {
+            type: String,
+            required: true,
         },
     },
     { timestamps: true }
