@@ -33,13 +33,23 @@ export default class CouponService {
     }
 
     /**
+     * Updates a coupon.
+     * @param {string} couponCode - The coupon code to update.
+     * @param {Partial<Coupon>} data - The data to update the coupon with.
+     * @return {Promise<void>} The updated coupon.
+     */
+    static async update(couponCode, data) {
+        return Coupon.findOneAndUpdate({ code: couponCode }, data, { new: true }).lean();
+    }
+
+    /**
      * Validates a coupon code by checking if the coupon exists and is still active.
      * @param {string} code - The coupon code to validate.
      * @return {Promise<Object>} A validated coupon object with a subset of the coupon's data: {code, discountPercentage}.
      * @throws {Error} If the coupon is not found or has expired.
      */
-    static async validateCode(code) {
-        const coupon = await Coupon.findOne({ code, isActive: true });
+    static async validateCode(code, userId) {
+        const coupon = await Coupon.findOne({ code, ownerId: userId, isActive: true });
 
         if (!coupon) {
             throw new Error("Coupon not found");
