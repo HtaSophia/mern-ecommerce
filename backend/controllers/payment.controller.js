@@ -29,3 +29,34 @@ export const createCheckoutSession = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+/**
+ * Updates the order status after a successful payment and, if applicable, disables the coupon used.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @param {string} sessionId - The ID of the Stripe Checkout Session.
+ *
+ * @throws {Error} If the payment has not been successful.
+ */
+export const checkoutSuccess = async (req, res) => {
+    const { sessionId } = req.body;
+
+    try {
+        const session = await PaymentService.getCheckoutSession(sessionId);
+
+        if (session.payment_status !== "paid") return res.status(400).json({ message: "Payment failed" });
+
+        if (session.metadata.couponCode) {
+            await CouponService.update(session.metadata.couponCode, { isActive: false });
+        }
+
+        const updatedOrder = await PaymentService.updateOrder(session.metadata.orderId, {
+            status: "ordered",
+        });
+
+        res.status(200).json({ data: { order: updatedOrder }, message: "Successful payment" });
+    } catch (error) {
+        console.error("Error (checkoutSuccess):", error);
+        res.status(500).json({ message: error.message });
+    }
+};
