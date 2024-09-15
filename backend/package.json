@@ -1,11 +1,11 @@
 {
   "name": "mern-ecommerce",
   "version": "1.0.0",
-  "main": "backend/server.js",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "node backend/server.js",
-    "start:dev": "node --watch backend/server.js"
+    "start": "node src/server.js",
+    "start:dev": "node --watch src/server.js"
   },
   "keywords": [],
   "author": "",
