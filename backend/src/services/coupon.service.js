@@ -1,4 +1,4 @@
-import stripe from "../lib/stripe";
+import stripe from "../lib/stripe.js";
 
 import Coupon from "../models/coupon.model.js";
 import { compareDates } from "../utils/date.util.js";

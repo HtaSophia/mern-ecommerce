@@ -1,5 +1,5 @@
 import Order from "../models/order.model.js";
-import stripe from "../lib/stripe";
+import stripe from "../lib/stripe.js";
 
 export default class PaymentService {
     /**
