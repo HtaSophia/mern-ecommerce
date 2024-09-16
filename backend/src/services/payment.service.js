@@ -1,5 +1,7 @@
-import Order from "../models/order.model.js";
 import stripe from "../lib/stripe.js";
+
+import CouponService from "./coupon.service.js";
+import OrderService from "./order.service.js";
 
 export default class PaymentService {
     /**
@@ -25,7 +27,7 @@ export default class PaymentService {
         const totalAmount = products.reduce((acc, product) => acc + product.price * product.quantity, 0);
         const totalWithDiscount = coupon ? totalAmount - coupon.discountPercentage * totalAmount : totalAmount;
 
-        const order = await PaymentService.createOrder({ user: userId, products, totalAmount: totalWithDiscount });
+        const order = await OrderService.create({ user: userId, products, totalAmount: totalWithDiscount });
 
         const session = await stripe.checkout.sessions.create({
             line_items: lineItems,
@@ -47,30 +49,28 @@ export default class PaymentService {
     }
 
     /**
-     * Retrieves a Stripe Checkout session by its ID.
-     * @param {string} sessionId - The ID of the Checkout session to retrieve.
-     * @return {Object>} The retrieved Checkout session.
-     */
-    static async getCheckoutSession(sessionId) {
-        return stripe.checkout.sessions.retrieve(sessionId);
-    }
-
-    /**
-     * Creates a new order in the database.
-     * @param {Order} order - The order to create.
-     * @return {Promise<Order>} The created order.
-     */
-    static async createOrder(order) {
-        return Order.create({ ...order });
-    }
-
-    /**
-     * Updates an existing order in the database.
-     * @param {ObjectId} orderId - The ID of the order to update.
-     * @param {Partial<Order>} order - The updated order.
+     * Updates the order status after a successful payment and, if applicable, disables the coupon used.
+     * @param {string} sessionId - The ID of the Stripe Checkout Session.
+     *
+     * @throws {Error} If the payment has not been successful.
+     *
      * @return {Promise<Order>} The updated order.
      */
-    static async updateOrder(orderId, order) {
-        return Order.findByIdAndUpdate(orderId, order, { new: true }).lean();
+    static async finalizeCheckout(sessionId) {
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+        if (session.payment_status !== "paid") {
+            throw new Error("Payment failed");
+        }
+
+        if (session.metadata.couponCode) {
+            await CouponService.update(session.metadata.couponCode, { isActive: false });
+        }
+
+        const updatedOrder = await OrderService.update(session.metadata.orderId, {
+            status: "completed",
+        });
+
+        return updatedOrder;
     }
 }

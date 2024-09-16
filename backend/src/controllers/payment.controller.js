@@ -42,19 +42,8 @@ export const checkoutSuccess = async (req, res) => {
     const { sessionId } = req.body;
 
     try {
-        const session = await PaymentService.getCheckoutSession(sessionId);
-
-        if (session.payment_status !== "paid") return res.status(400).json({ message: "Payment failed" });
-
-        if (session.metadata.couponCode) {
-            await CouponService.update(session.metadata.couponCode, { isActive: false });
-        }
-
-        const updatedOrder = await PaymentService.updateOrder(session.metadata.orderId, {
-            status: "ordered",
-        });
-
-        res.status(200).json({ data: { order: updatedOrder }, message: "Successful payment" });
+        const order = await PaymentService.finalizeCheckout(sessionId);
+        res.status(200).json({ data: { order }, message: "Successful payment" });
     } catch (error) {
         console.error("Error (checkoutSuccess):", error);
         res.status(500).json({ message: error.message });
