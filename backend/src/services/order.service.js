@@ -29,6 +29,32 @@ export default class OrderService {
     }
 
     /**
+     * Gets the sales summaries for each day in the given date range.
+     * @param {Date} startDate - The start date of the range.
+     * @param {Date} endDate - The end date of the range.
+     * @return {Promise<{_id: string, total: number, count: number}[]>} An array of objects with the sales summary for each day.
+     * Each object contains the date as "_id", the total amount of sales as "total", and the count of orders as "count", sorted in ascending order by date.
+     */
+    static getSalesSummariesInDateRange(startDate, endDate) {
+        return Order.aggregate([
+            {
+                $match: {
+                    status: "completed",
+                    updatedAt: { $gte: startDate, $lte: endDate },
+                },
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$updatedAt" } },
+                    total: { $sum: "$totalAmount" },
+                    count: { $sum: 1 },
+                },
+            },
+            { $sort: { _id: 1 } },
+        ]);
+    }
+
+    /**
      * Updates an existing order in the database.
      * @param {ObjectId} orderId - The ID of the order to update.
      * @param {Partial<Order>} order - The updated order.
