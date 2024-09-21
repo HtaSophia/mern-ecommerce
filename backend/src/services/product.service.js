@@ -51,6 +51,20 @@ export default class ProductService {
         return featuredProducts;
     }
 
+    /**
+     * Retrieves the total number of products in the database.
+     * @return {Promise<number>} The total number of products.
+     */
+    static async getTotalProducts() {
+        return Product.countDocuments();
+    }
+
+    /**
+     * Updates a product by ID in the database.
+     * @param {string} id - The ID of the product to update.
+     * @param {Partial<Product>} product - The fields to update on the product.
+     * @return {Promise<Product>} The updated product.
+     */
     static async updateProduct(id, product) {
         return Product.findByIdAndUpdate(id, { ...product }, { new: true });
     }
