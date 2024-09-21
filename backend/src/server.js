@@ -5,11 +5,14 @@ import cookieParser from "cookie-parser";
 import { connectDB } from "./lib/db.js";
 
 import { authMiddleware } from "./middlewares/auth.middleware.js";
+import { adminAccessMiddleware } from "./middlewares/admin-access.middleware.js";
+
+import analyticsRoutes from "./routes/analytics.route.js";
 import authRoutes from "./routes/auth.route.js";
 import cartRoutes from "./routes/cart.route.js";
 import couponRoutes from "./routes/coupon.route.js";
-import productRoutes from "./routes/product.route.js";
 import paymentRoutes from "./routes/payment.route.js";
+import productRoutes from "./routes/product.route.js";
 
 dotenv.config();
 
@@ -24,6 +27,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/cart", authMiddleware, cartRoutes);
 app.use("/api/coupons", authMiddleware, couponRoutes);
 app.use("/api/payments", authMiddleware, paymentRoutes);
+app.use("/api/analytics", adminAccessMiddleware, authMiddleware, analyticsRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server listening at http://localhost:${PORT}`);
