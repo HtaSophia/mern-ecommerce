@@ -48,6 +48,14 @@ export default class UserService {
     }
 
     /**
+     * Gets the total number of users in the database.
+     * @return {Promise<number>} The total number of users.
+     */
+    static async getTotalUsers() {
+        return User.countDocuments();
+    }
+
+    /**
      * Logs in an existing user and returns a user object with a subset of the user's data.
      * @param {{email: string, password: string}} user - The email and password of the user to log in.
      * @return {Promise<Object>} A user object with a subset of the user's data: {_id, name, email, cartItems, role}.
