@@ -1,0 +1,26 @@
+{
+    "name": "mern-ecommerce",
+    "version": "1.0.0",
+    "description": "This is an e-commerce platform built using React for the front-end and Node.js for the back-end.",
+    "scripts": {
+        "build": "npm run build:frontend && npm run build:backend",
+        "build:backend": "cd backend && npm run build",
+        "build:frontend": "cd frontend && npm run build",
+        "start": "npm run start:frontend && npm run start:backend",
+        "start:backend": "cd backend && npm run start:dev",
+        "start:frontend": "cd frontend && npm run dev"
+    },
+    "workspaces": [
+        "backend",
+        "frontend"
+    ],
+    "keywords": [
+        "mern",
+        "ecommerce",
+        "react",
+        "nodejs",
+        "mongodb"
+    ],
+    "author": "Aghata Truta",
+    "license": "MIT"
+}
