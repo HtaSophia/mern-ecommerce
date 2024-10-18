@@ -1,13 +1,20 @@
 import AuthService from "../services/auth.service.js";
 import UserService from "../services/user.service.js";
 
+export const getCurrentUser = async (req, res) => {
+    return res.status(200).json({
+        user: req.user ?? null,
+        message: req.user ? "User retrieved successfully" : "No user logged in",
+    });
+};
+
 /**
  * Creates a new user and adds an access token and a refresh token.
  * @param {Request} req - The request object.
  * @param {Response} res - The response object.
  * @returns {Promise<void>}
  */
-export const signup = async (req, res) => {
+export const register = async (req, res) => {
     const { name, email, password } = req.body;
 
     try {
@@ -17,7 +24,7 @@ export const signup = async (req, res) => {
         await AuthService.storeRefreshToken(user._id, refreshToken);
         setCookies(res, accessToken, refreshToken);
 
-        res.status(201).json({ data: { user }, message: "User created successfully" });
+        res.status(201).json({ user, message: "User created successfully" });
     } catch (error) {
         console.error("Error signing up:", error);
         res.status(500).json({ message: error.message });
@@ -46,14 +53,12 @@ export const login = async (req, res) => {
         setCookies(res, accessToken, refreshToken);
 
         res.status(200).json({
-            data: {
-                user: {
-                    _id: user._id,
-                    name: user.name,
-                    email: user.email,
-                    cartItems: user.cartItems,
-                    role: user.role,
-                },
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                cartItems: user.cartItems,
+                role: user.role,
             },
             message: "Logged in successfully",
         });
