@@ -1,17 +1,15 @@
-import PropTypes from "prop-types";
+import { Outlet } from "react-router-dom";
 import Navbar from "./components/Navbar";
 
-const Layout = ({ children }) => {
+const Layout = () => {
     return (
         <>
             <Navbar />
-            <main>{children}</main>
+            <main>
+                <Outlet />
+            </main>
         </>
     );
-};
-
-Layout.propTypes = {
-    children: PropTypes.element.isRequired,
 };
 
 export default Layout;
